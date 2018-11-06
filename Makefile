@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-.PHONY: all driver-registrar clean test
+.PHONY: all cluster-driver-registrar clean test
 
 REGISTRY_NAME=quay.io/k8scsi
-IMAGE_NAME=driver-registrar
+IMAGE_NAME=csi-cluster-driver-registrar
 IMAGE_VERSION=canary
 IMAGE_TAG=$(REGISTRY_NAME)/$(IMAGE_NAME):$(IMAGE_VERSION)
 
@@ -28,16 +28,16 @@ TESTARGS =
 endif
 
 
-all: driver-registrar
+all: cluster-driver-registrar
 
-driver-registrar:
+cluster-driver-registrar:
 	mkdir -p bin
-	CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-X main.version=$(REV) -extldflags "-static"' -o ./bin/driver-registrar ./cmd/driver-registrar
+	CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-X main.version=$(REV) -extldflags "-static"' -o ./bin/cluster-driver-registrar ./cmd/cluster-driver-registrar
 
 clean:
 	rm -rf bin
 
-container: driver-registrar
+container: cluster-driver-registrar
 	docker build -t $(IMAGE_TAG) .
 
 push: container

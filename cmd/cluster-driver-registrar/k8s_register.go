@@ -31,7 +31,7 @@ import (
 	k8scsiclient "k8s.io/csi-api/pkg/client/clientset/versioned"
 	k8scsicrd "k8s.io/csi-api/pkg/crd"
 
-	"github.com/kubernetes-csi/driver-registrar/pkg/connection"
+	"github.com/kubernetes-csi/cluster-driver-registrar/pkg/connection"
 )
 
 func kubernetesRegister(
