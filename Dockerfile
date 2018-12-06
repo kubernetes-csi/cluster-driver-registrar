@@ -1,6 +1,6 @@
 FROM alpine
 LABEL maintainers="Kubernetes Authors"
-LABEL description="CSI Driver registrar"
+LABEL description="CSI Cluster Driver registrar"
 
-COPY ./bin/driver-registrar driver-registrar
-ENTRYPOINT ["/driver-registrar"]
+COPY ./bin/cluster-driver-registrar cluster-driver-registrar
+ENTRYPOINT ["/cluster-driver-registrar"]
