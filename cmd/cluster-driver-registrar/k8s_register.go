@@ -30,14 +30,11 @@ import (
 	k8scsi "k8s.io/csi-api/pkg/apis/csi/v1alpha1"
 	k8scsiclient "k8s.io/csi-api/pkg/client/clientset/versioned"
 	k8scsicrd "k8s.io/csi-api/pkg/crd"
-
-	"github.com/kubernetes-csi/cluster-driver-registrar/pkg/connection"
 )
 
 func kubernetesRegister(
 	config *rest.Config,
-	csiConn connection.CSIConnection,
-	csiDriverName string,
+	csiDriver *k8scsi.CSIDriver,
 ) {
 	// Get client info to CSIDriver
 	clientset, err := k8scsiclient.NewForConfig(config)
@@ -45,14 +42,6 @@ func kubernetesRegister(
 		glog.Error(err.Error())
 		os.Exit(1)
 	}
-
-	// Set spec
-	spec := &k8scsi.CSIDriverSpec{
-		AttachRequired:        k8sAttachmentRequired,
-		PodInfoOnMountVersion: k8sPodInfoOnMountVersion,
-	}
-	glog.V(1).Infof("AttachRequired: %v", *k8sAttachmentRequired)
-	glog.V(1).Infof("PodInfoOnMountVersion: %v", *k8sPodInfoOnMountVersion)
 
 	// Register CRD
 	glog.V(1).Info("Registering " + k8scsi.CsiDriverResourcePlural)
@@ -79,14 +68,13 @@ func kubernetesRegister(
 		<-c
 		verifyAndDeleteCSIDriverInfo(
 			clientset,
-			csiDriverName,
-			spec)
+			csiDriver)
 		os.Exit(1)
 	}()
 
 	// Run forever
 	for {
-		verifyAndAddCSIDriverInfo(clientset, csiDriverName, spec)
+		verifyAndAddCSIDriverInfo(clientset, csiDriver)
 		time.Sleep(sleepDuration)
 	}
 }
@@ -94,23 +82,14 @@ func kubernetesRegister(
 // Registers CSI driver by creating a CSIDriver object
 func verifyAndAddCSIDriverInfo(
 	csiClientset *k8scsiclient.Clientset,
-	csiDriverName string,
-	spec *k8scsi.CSIDriverSpec,
+	csiDriver *k8scsi.CSIDriver,
 ) error {
 	retryErr := retry.RetryOnConflict(retry.DefaultRetry, func() error {
 		csidrivers := csiClientset.CsiV1alpha1().CSIDrivers()
 
-		// Create it
-		csiDriver := &k8scsi.CSIDriver{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: csiDriverName,
-			},
-			Spec: *spec,
-		}
-
 		_, err := csidrivers.Create(csiDriver)
 		if err == nil {
-			glog.V(1).Infof("CSIDriver object created for driver %s", csiDriverName)
+			glog.V(1).Infof("CSIDriver object created for driver %s", csiDriver.Name)
 			return nil
 		} else if apierrors.IsAlreadyExists(err) {
 			return nil
@@ -128,14 +107,13 @@ func verifyAndAddCSIDriverInfo(
 // Deregister CSI Driver by deleting CSIDriver object
 func verifyAndDeleteCSIDriverInfo(
 	csiClientset *k8scsiclient.Clientset,
-	csiDriverName string,
-	spec *k8scsi.CSIDriverSpec,
+	csiDriver *k8scsi.CSIDriver,
 ) error {
 	retryErr := retry.RetryOnConflict(retry.DefaultRetry, func() error {
 		csidrivers := csiClientset.CsiV1alpha1().CSIDrivers()
-		err := csidrivers.Delete(csiDriverName, &metav1.DeleteOptions{})
+		err := csidrivers.Delete(csiDriver.Name, &metav1.DeleteOptions{})
 		if err == nil {
-			glog.V(1).Infof("CSIDriver object deleted for driver %s", csiDriverName)
+			glog.V(1).Infof("CSIDriver object deleted for driver %s", csiDriver.Name)
 			return nil
 		} else if apierrors.IsNotFound(err) {
 			glog.V(1).Info("No need to clean up CSIDriver since it does not exist")
