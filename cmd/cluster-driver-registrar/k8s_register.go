@@ -110,7 +110,7 @@ func verifyAndAddCSIDriverInfo(
 
 		_, err := csidrivers.Create(csiDriver)
 		if err == nil {
-			glog.V(1).Infof("CSIDRiver object created for driver %s", csiDriverName)
+			glog.V(1).Infof("CSIDriver object created for driver %s", csiDriverName)
 			return nil
 		} else if apierrors.IsAlreadyExists(err) {
 			return nil
@@ -135,13 +135,13 @@ func verifyAndDeleteCSIDriverInfo(
 		csidrivers := csiClientset.CsiV1alpha1().CSIDrivers()
 		err := csidrivers.Delete(csiDriverName, &metav1.DeleteOptions{})
 		if err == nil {
-			glog.V(1).Infof("CSIDRiver object deleted for driver %s", csiDriverName)
+			glog.V(1).Infof("CSIDriver object deleted for driver %s", csiDriverName)
 			return nil
 		} else if apierrors.IsNotFound(err) {
 			glog.V(1).Info("No need to clean up CSIDriver since it does not exist")
 			return nil
 		} else {
-			glog.Errorf("Failed to create CSIDriver object: %v", err)
+			glog.Errorf("Failed to delete CSIDriver object: %v", err)
 			return err
 		}
 	})
