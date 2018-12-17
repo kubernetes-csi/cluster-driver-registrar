@@ -42,6 +42,10 @@ type CSIConnection interface {
 	// NodeGetId returns node ID of the current according to the CSI driver.
 	NodeGetId(ctx context.Context) (string, error)
 
+	// IsAttachRequired returns a boolean that says whether the driver
+	// requires attachment of volumes.
+	IsAttachRequired(ctx context.Context) (bool, error)
+
 	// Close the connection
 	Close() error
 }
@@ -127,6 +131,27 @@ func (c *csiConnection) NodeGetId(ctx context.Context) (string, error) {
 		return "", fmt.Errorf("node ID is empty")
 	}
 	return nodeID, nil
+}
+
+func (c *csiConnection) IsAttachRequired(ctx context.Context) (bool, error) {
+	client := csi.NewControllerClient(c.conn)
+
+	req := csi.ControllerGetCapabilitiesRequest{}
+
+	rsp, err := client.ControllerGetCapabilities(ctx, &req)
+	if err != nil {
+		return false, err
+	}
+
+	caps := rsp.GetCapabilities()
+
+	for _, cap := range caps {
+		if cap.GetRpc().GetType() == csi.ControllerServiceCapability_RPC_PUBLISH_UNPUBLISH_VOLUME {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 func (c *csiConnection) Close() error {

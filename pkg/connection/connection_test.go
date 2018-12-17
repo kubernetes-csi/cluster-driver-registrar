@@ -185,3 +185,100 @@ func TestGetPluginInfo(t *testing.T) {
 		}
 	}
 }
+
+func TestIsAttachRequired(t *testing.T) {
+	tests := []struct {
+		name           string
+		output         *csi.ControllerGetCapabilitiesResponse
+		attachRequired bool
+		injectError    bool
+		expectError    bool
+	}{
+		{
+			name: "success",
+			output: &csi.ControllerGetCapabilitiesResponse{
+				Capabilities: []*csi.ControllerServiceCapability{
+					&csi.ControllerServiceCapability{
+						Type: &csi.ControllerServiceCapability_Rpc{
+							Rpc: &csi.ControllerServiceCapability_RPC{
+								Type: csi.ControllerServiceCapability_RPC_CREATE_DELETE_VOLUME,
+							},
+						},
+					},
+					&csi.ControllerServiceCapability{
+						Type: &csi.ControllerServiceCapability_Rpc{
+							Rpc: &csi.ControllerServiceCapability_RPC{
+								Type: csi.ControllerServiceCapability_RPC_PUBLISH_UNPUBLISH_VOLUME,
+							},
+						},
+					},
+				},
+			},
+			attachRequired: true,
+			expectError:    false,
+		},
+		{
+			name: "no publish",
+			output: &csi.ControllerGetCapabilitiesResponse{
+				Capabilities: []*csi.ControllerServiceCapability{
+					&csi.ControllerServiceCapability{
+						Type: &csi.ControllerServiceCapability_Rpc{
+							Rpc: &csi.ControllerServiceCapability_RPC{
+								Type: csi.ControllerServiceCapability_RPC_CREATE_DELETE_VOLUME,
+							},
+						},
+					},
+				},
+			},
+			attachRequired: false,
+			expectError:    false,
+		},
+		{
+			name:        "gRPC error",
+			output:      nil,
+			injectError: true,
+			expectError: true,
+		},
+		{
+			name: "empty capabilities",
+			output: &csi.ControllerGetCapabilitiesResponse{
+				Capabilities: nil,
+			},
+			attachRequired: false,
+			expectError:    false,
+		},
+	}
+
+	mockController, driver, _, controllerServer, _, csiConn, err := createMockServer(t)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer mockController.Finish()
+	defer driver.Stop()
+	defer csiConn.Close()
+
+	for _, test := range tests {
+
+		in := &csi.ControllerGetCapabilitiesRequest{}
+
+		out := test.output
+		var injectedErr error
+		if test.injectError {
+			injectedErr = fmt.Errorf("mock error")
+		}
+
+		// Setup expectation
+		controllerServer.EXPECT().ControllerGetCapabilities(gomock.Any(), in).Return(out, injectedErr).Times(1)
+
+		attachRequired, err := csiConn.IsAttachRequired(context.Background())
+		if test.expectError && err == nil {
+			t.Errorf("test %q: Expected error, got none", test.name)
+		}
+		if !test.expectError && err != nil {
+			t.Errorf("test %q: got error: %v", test.name, err)
+		}
+		if err == nil && attachRequired != test.attachRequired {
+			t.Errorf("expecting attachRequired == %t, got %t", test.attachRequired, attachRequired)
+		}
+	}
+}

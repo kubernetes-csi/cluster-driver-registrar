@@ -24,8 +24,10 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	k8scsi "k8s.io/csi-api/pkg/apis/csi/v1alpha1"
 
 	"github.com/kubernetes-csi/cluster-driver-registrar/pkg/connection"
 )
@@ -40,14 +42,7 @@ const (
 
 // Command line flags
 var (
-	kubeconfig            = flag.String("kubeconfig", "", "Absolute path to the kubeconfig file. Required only when running out of cluster.")
-	k8sAttachmentRequired = flag.Bool("driver-requires-attachment",
-		true,
-		"Indicates this CSI volume driver requires an attach operation (because it "+
-			"implements the CSI ControllerPublishVolume() method), and that Kubernetes "+
-			"should call attach and wait for any attach operation to complete before "+
-			"proceeding to mounting. If value is not specified, default is false meaning "+
-			"attach will not be called.")
+	kubeconfig               = flag.String("kubeconfig", "", "Absolute path to the kubeconfig file. Required only when running out of cluster.")
 	k8sPodInfoOnMountVersion = flag.String("pod-info-mount-version",
 		"",
 		"This indicates that the associated CSI volume driver"+
@@ -84,16 +79,39 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Get CSI driver name.
-	glog.V(1).Infof("Calling CSI driver to discover driver name.")
+	// Get connection context
 	ctx, cancel := context.WithTimeout(context.Background(), csiTimeout)
 	defer cancel()
+
+	// Get CSI driver name.
+	glog.V(4).Infof("Calling CSI driver to discover driver name.")
 	csiDriverName, err := csiConn.GetDriverName(ctx)
 	if err != nil {
 		glog.Error(err.Error())
 		os.Exit(1)
 	}
 	glog.V(2).Infof("CSI driver name: %q", csiDriverName)
+
+	// Check if volume attach is required
+	glog.V(4).Infof("Checking if CSI driver implements ControllerPublishVolume().")
+	k8sAttachmentRequired, err := csiConn.IsAttachRequired(ctx)
+	if err != nil {
+		glog.Error(err.Error())
+		os.Exit(1)
+	}
+
+	// Create CSIDriver object
+	csiDriver := &k8scsi.CSIDriver{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: csiDriverName,
+		},
+		Spec: k8scsi.CSIDriverSpec{
+			AttachRequired:        &k8sAttachmentRequired,
+			PodInfoOnMountVersion: k8sPodInfoOnMountVersion,
+		},
+	}
+
+	glog.V(2).Infof("CSIDriver object: %+v", *csiDriver)
 
 	// Create the client config. Use kubeconfig if given, otherwise assume
 	// in-cluster.
@@ -105,7 +123,7 @@ func main() {
 	}
 
 	// Run forever
-	kubernetesRegister(config, csiConn, csiDriverName)
+	kubernetesRegister(config, csiDriver)
 }
 
 func buildConfig(kubeconfig string) (*rest.Config, error) {
