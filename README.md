@@ -1,9 +1,22 @@
 [![Build Status](https://travis-ci.org/kubernetes-csi/driver-registrar.svg?branch=master)](https://travis-ci.org/kubernetes-csi/driver-registrar)
 # Cluster Driver Registrar
 
-A sidecar container that
+A cluster-level sidecar container that
 
-1. Registers the containerized CSI driver with Kubernetes and create a CSIDriver object
+1. Creates a [CSIDriver
+   object](https://github.com/kubernetes/kubernetes/blob/master/staging/src/k8s.io/csi-api/pkg/crd/manifests/csidriver.yaml)
+   for the driver.
+
+This sidecar container is only needed if you need one of the following Kubernetes
+features:
+
+* Skip attach: For drivers that don't support ControllerPublishVolume, this
+  eliminates the need to deploy the external-attacher sidecar
+* Pod info on mount: This passes Kubernetes metadata such as Pod name and
+  namespace to the NodePublish call
+
+For more details, please see the
+[documentation](https://kubernetes-csi.github.io/docs/Setup.html#csidriver-custom-resource-alpha).
 
 ## Community, discussion, contribution, and support
 
