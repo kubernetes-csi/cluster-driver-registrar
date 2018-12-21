@@ -198,14 +198,14 @@ func TestIsAttachRequired(t *testing.T) {
 			name: "success",
 			output: &csi.ControllerGetCapabilitiesResponse{
 				Capabilities: []*csi.ControllerServiceCapability{
-					&csi.ControllerServiceCapability{
+					{
 						Type: &csi.ControllerServiceCapability_Rpc{
 							Rpc: &csi.ControllerServiceCapability_RPC{
 								Type: csi.ControllerServiceCapability_RPC_CREATE_DELETE_VOLUME,
 							},
 						},
 					},
-					&csi.ControllerServiceCapability{
+					{
 						Type: &csi.ControllerServiceCapability_Rpc{
 							Rpc: &csi.ControllerServiceCapability_RPC{
 								Type: csi.ControllerServiceCapability_RPC_PUBLISH_UNPUBLISH_VOLUME,
@@ -221,7 +221,7 @@ func TestIsAttachRequired(t *testing.T) {
 			name: "no publish",
 			output: &csi.ControllerGetCapabilitiesResponse{
 				Capabilities: []*csi.ControllerServiceCapability{
-					&csi.ControllerServiceCapability{
+					{
 						Type: &csi.ControllerServiceCapability_Rpc{
 							Rpc: &csi.ControllerServiceCapability_RPC{
 								Type: csi.ControllerServiceCapability_RPC_CREATE_DELETE_VOLUME,
