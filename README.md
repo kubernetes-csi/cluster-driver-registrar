@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/kubernetes-csi/driver-registrar.svg?branch=master)](https://travis-ci.org/kubernetes-csi/driver-registrar)
+
 # Cluster Driver Registrar
 
 A cluster-level sidecar container that
@@ -24,10 +25,10 @@ Learn how to engage with the Kubernetes community on the [community page](http:/
 
 You can reach the maintainers of this project at:
 
-- Slack channels
-  - [#wg-csi](https://kubernetes.slack.com/messages/wg-csi)
-  - [#sig-storage](https://kubernetes.slack.com/messages/sig-storage)
-- [Mailing list](https://groups.google.com/forum/#!forum/kubernetes-sig-storage)
+* Slack channels
+  * [#wg-csi](https://kubernetes.slack.com/messages/wg-csi)
+  * [#sig-storage](https://kubernetes.slack.com/messages/sig-storage)
+* [Mailing list](https://groups.google.com/forum/#!forum/kubernetes-sig-storage)
 
 ### Code of conduct
 
