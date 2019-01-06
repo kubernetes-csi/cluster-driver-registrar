@@ -58,6 +58,7 @@ var (
 	_ CSIConnection = &csiConnection{}
 )
 
+// NewConnection returns a grpc connection object to remote CSI driver.
 func NewConnection(
 	address string, timeout time.Duration) (CSIConnection, error) {
 	conn, err := connect(address, timeout)
@@ -117,6 +118,7 @@ func (c *csiConnection) GetDriverName(ctx context.Context) (string, error) {
 	return name, nil
 }
 
+// NodeGetId returns unique node id from NodeGetInfoResponse
 func (c *csiConnection) NodeGetId(ctx context.Context) (string, error) {
 	client := csi.NewNodeClient(c.conn)
 
