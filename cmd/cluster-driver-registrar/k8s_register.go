@@ -52,31 +52,29 @@ func kubernetesRegister(
 	}
 	crdv1beta1client := crdclient.ApiextensionsV1beta1().CustomResourceDefinitions()
 	_, err = crdv1beta1client.Create(k8scsicrd.CSIDriverCRD())
-	if err == nil {
-		glog.V(1).Info("CSIDriver CRD registered")
-	} else if apierrors.IsAlreadyExists(err) {
+	if apierrors.IsAlreadyExists(err) {
 		glog.V(1).Info("CSIDriver CRD already had been registered")
 	} else if err != nil {
 		glog.Error(err.Error())
 		os.Exit(1)
 	}
-
+	glog.V(1).Info("CSIDriver CRD registered")
 	// Set up goroutine to cleanup (aka deregister) on termination.
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
-	go func() {
-		<-c
-		verifyAndDeleteCSIDriverInfo(
-			clientset,
-			csiDriver)
-		os.Exit(1)
-	}()
+	go cleanup(c, clientset, csiDriver)
 
 	// Run forever
 	for {
 		verifyAndAddCSIDriverInfo(clientset, csiDriver)
 		time.Sleep(sleepDuration)
 	}
+}
+
+func cleanup(c <-chan os.Signal, clientSet *k8scsiclient.Clientset, csiDriver *k8scsi.CSIDriver) {
+	<-c
+	verifyAndDeleteCSIDriverInfo(clientSet, csiDriver)
+	os.Exit(1)
 }
 
 // Registers CSI driver by creating a CSIDriver object
@@ -92,16 +90,13 @@ func verifyAndAddCSIDriverInfo(
 			glog.V(1).Infof("CSIDriver object created for driver %s", csiDriver.Name)
 			return nil
 		} else if apierrors.IsAlreadyExists(err) {
+			glog.V(1).Info("CSIDriver CRD already had been registered")
 			return nil
-		} else {
-			glog.Errorf("Failed to create CSIDriver object: %v", err)
-			return err
 		}
+		glog.Errorf("Failed to create CSIDriver object: %v", err)
+		return err
 	})
-	if retryErr != nil {
-		return retryErr
-	}
-	return nil
+	return retryErr
 }
 
 // Deregister CSI Driver by deleting CSIDriver object
@@ -118,13 +113,9 @@ func verifyAndDeleteCSIDriverInfo(
 		} else if apierrors.IsNotFound(err) {
 			glog.V(1).Info("No need to clean up CSIDriver since it does not exist")
 			return nil
-		} else {
-			glog.Errorf("Failed to delete CSIDriver object: %v", err)
-			return err
 		}
+		glog.Errorf("Failed to delete CSIDriver object: %v", err)
+		return err
 	})
-	if retryErr != nil {
-		return retryErr
-	}
-	return nil
+	return retryErr
 }
