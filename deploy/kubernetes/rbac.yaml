@@ -19,21 +19,11 @@ metadata:
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: driver-registrar-runner
+  name: cluster-driver-registrar-role
 rules:
-  - apiGroups: [""]
-    resources: ["events"]
-    verbs: ["get", "list", "watch", "create", "update", "patch"]
-  # The following permissions are only needed when running
-  # driver-registrar without the --kubelet-registration-path
-  # parameter, i.e. when using driver-registrar instead of
-  # kubelet to update the csi.volume.kubernetes.io/nodeid
-  # annotation. That mode of operation is going to be deprecated
-  # and should not be used anymore, but is needed on older
-  # Kubernetes versions.
-  # - apiGroups: [""]
-  #   resources: ["nodes"]
-  #   verbs: ["get", "update", "patch"]
+  - apiGroups: ["csi.storage.k8s.io"]
+    resources: ["csidrivers"]
+    verbs: ["create", "delete"]
 
 ---
 kind: ClusterRoleBinding
@@ -47,5 +37,5 @@ subjects:
     namespace: default
 roleRef:
   kind: ClusterRole
-  name: driver-registrar-runner
+  name: cluster-driver-registrar-role
   apiGroup: rbac.authorization.k8s.io
