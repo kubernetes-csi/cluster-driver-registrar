@@ -12,37 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-.PHONY: all cluster-driver-registrar clean test
-
-REGISTRY_NAME=quay.io/k8scsi
-IMAGE_NAME=csi-cluster-driver-registrar
-IMAGE_VERSION=canary
-IMAGE_TAG=$(REGISTRY_NAME)/$(IMAGE_NAME):$(IMAGE_VERSION)
-
-REV=$(shell git describe --long --tags --match='v*' --dirty)
-
-ifdef V
-TESTARGS = -v -args -alsologtostderr -v 5
-else
-TESTARGS =
-endif
-
-
-all: cluster-driver-registrar
-
-cluster-driver-registrar:
-	mkdir -p bin
-	CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-X main.version=$(REV) -extldflags "-static"' -o ./bin/cluster-driver-registrar ./cmd/cluster-driver-registrar
-
-clean:
-	rm -rf bin
-
-container: cluster-driver-registrar
-	docker build -t $(IMAGE_TAG) .
-
-push: container
-	docker push $(IMAGE_TAG)
-
-test:
-	go test `go list ./... | grep -v 'vendor'` $(TESTARGS)
-	go vet `go list ./... | grep -v vendor`
+CMDS=csi-cluster-driver-registrar
+all: build
+include release-tools/build.make
