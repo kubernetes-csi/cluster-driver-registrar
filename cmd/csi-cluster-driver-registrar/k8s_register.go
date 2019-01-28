@@ -21,7 +21,6 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/golang/glog"
 	crdclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -30,6 +29,7 @@ import (
 	k8scsi "k8s.io/csi-api/pkg/apis/csi/v1alpha1"
 	k8scsiclient "k8s.io/csi-api/pkg/client/clientset/versioned"
 	k8scsicrd "k8s.io/csi-api/pkg/crd"
+	"k8s.io/klog"
 )
 
 func kubernetesRegister(
@@ -39,26 +39,26 @@ func kubernetesRegister(
 	// Get client info to CSIDriver
 	clientset, err := k8scsiclient.NewForConfig(config)
 	if err != nil {
-		glog.Error(err.Error())
+		klog.Error(err.Error())
 		os.Exit(1)
 	}
 
 	// Register CRD
-	glog.V(1).Info("Registering " + k8scsi.CsiDriverResourcePlural)
+	klog.V(1).Info("Registering " + k8scsi.CsiDriverResourcePlural)
 	crdclient, err := crdclient.NewForConfig(config)
 	if err != nil {
-		glog.Error(err.Error())
+		klog.Error(err.Error())
 		os.Exit(1)
 	}
 	crdv1beta1client := crdclient.ApiextensionsV1beta1().CustomResourceDefinitions()
 	_, err = crdv1beta1client.Create(k8scsicrd.CSIDriverCRD())
 	if apierrors.IsAlreadyExists(err) {
-		glog.V(1).Info("CSIDriver CRD already had been registered")
+		klog.V(1).Info("CSIDriver CRD already had been registered")
 	} else if err != nil {
-		glog.Error(err.Error())
+		klog.Error(err.Error())
 		os.Exit(1)
 	}
-	glog.V(1).Info("CSIDriver CRD registered")
+	klog.V(1).Info("CSIDriver CRD registered")
 	// Set up goroutine to cleanup (aka deregister) on termination.
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
@@ -87,13 +87,13 @@ func verifyAndAddCSIDriverInfo(
 
 		_, err := csidrivers.Create(csiDriver)
 		if err == nil {
-			glog.V(1).Infof("CSIDriver object created for driver %s", csiDriver.Name)
+			klog.V(1).Infof("CSIDriver object created for driver %s", csiDriver.Name)
 			return nil
 		} else if apierrors.IsAlreadyExists(err) {
-			glog.V(1).Info("CSIDriver CRD already had been registered")
+			klog.V(1).Info("CSIDriver CRD already had been registered")
 			return nil
 		}
-		glog.Errorf("Failed to create CSIDriver object: %v", err)
+		klog.Errorf("Failed to create CSIDriver object: %v", err)
 		return err
 	})
 	return retryErr
@@ -108,13 +108,13 @@ func verifyAndDeleteCSIDriverInfo(
 		csidrivers := csiClientset.CsiV1alpha1().CSIDrivers()
 		err := csidrivers.Delete(csiDriver.Name, &metav1.DeleteOptions{})
 		if err == nil {
-			glog.V(1).Infof("CSIDriver object deleted for driver %s", csiDriver.Name)
+			klog.V(1).Infof("CSIDriver object deleted for driver %s", csiDriver.Name)
 			return nil
 		} else if apierrors.IsNotFound(err) {
-			glog.V(1).Info("No need to clean up CSIDriver since it does not exist")
+			klog.V(1).Info("No need to clean up CSIDriver since it does not exist")
 			return nil
 		}
-		glog.Errorf("Failed to delete CSIDriver object: %v", err)
+		klog.Errorf("Failed to delete CSIDriver object: %v", err)
 		return err
 	})
 	return retryErr

@@ -23,11 +23,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/golang/glog"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	k8scsi "k8s.io/csi-api/pkg/apis/csi/v1alpha1"
+	"k8s.io/klog"
 
 	"github.com/kubernetes-csi/cluster-driver-registrar/pkg/connection"
 )
@@ -69,13 +69,13 @@ func main() {
 		fmt.Println(os.Args[0], version)
 		return
 	}
-	glog.Infof("Version: %s", version)
+	klog.Infof("Version: %s", version)
 
 	// Connect to CSI.
-	glog.V(1).Infof("Attempting to open a gRPC connection with: %q", *csiAddress)
+	klog.V(1).Infof("Attempting to open a gRPC connection with: %q", *csiAddress)
 	csiConn, err := connection.NewConnection(*csiAddress, *connectionTimeout)
 	if err != nil {
-		glog.Error(err.Error())
+		klog.Error(err.Error())
 		os.Exit(1)
 	}
 
@@ -84,19 +84,19 @@ func main() {
 	defer cancel()
 
 	// Get CSI driver name.
-	glog.V(4).Infof("Calling CSI driver to discover driver name.")
+	klog.V(4).Infof("Calling CSI driver to discover driver name.")
 	csiDriverName, err := csiConn.GetDriverName(ctx)
 	if err != nil {
-		glog.Error(err.Error())
+		klog.Error(err.Error())
 		os.Exit(1)
 	}
-	glog.V(2).Infof("CSI driver name: %q", csiDriverName)
+	klog.V(2).Infof("CSI driver name: %q", csiDriverName)
 
 	// Check if volume attach is required
-	glog.V(4).Infof("Checking if CSI driver implements ControllerPublishVolume().")
+	klog.V(4).Infof("Checking if CSI driver implements ControllerPublishVolume().")
 	k8sAttachmentRequired, err := csiConn.IsAttachRequired(ctx)
 	if err != nil {
-		glog.Error(err.Error())
+		klog.Error(err.Error())
 		os.Exit(1)
 	}
 
@@ -111,14 +111,14 @@ func main() {
 		},
 	}
 
-	glog.V(2).Infof("CSIDriver object: %+v", *csiDriver)
+	klog.V(2).Infof("CSIDriver object: %+v", *csiDriver)
 
 	// Create the client config. Use kubeconfig if given, otherwise assume
 	// in-cluster.
-	glog.V(1).Infof("Loading kubeconfig.")
+	klog.V(1).Infof("Loading kubeconfig.")
 	config, err := buildConfig(*kubeconfig)
 	if err != nil {
-		glog.Error(err.Error())
+		klog.Error(err.Error())
 		os.Exit(1)
 	}
 
