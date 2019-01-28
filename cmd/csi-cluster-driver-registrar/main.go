@@ -63,6 +63,7 @@ var (
 
 func main() {
 	flag.Set("logtostderr", "true")
+	klog.InitFlags(nil)
 	flag.Parse()
 
 	if *showVersion {
