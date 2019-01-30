@@ -1,17 +1,14 @@
-# This YAML file contains all RBAC objects that are necessary to run external
-# CSI provisioner.
+# This YAML file contains all RBAC objects that are necessary to run
+# cluster-driver-registrar.
 #
 # In production, each CSI driver deployment has to be customized:
 # - to avoid conflicts, use non-default namespace and different names
 #   for non-namespaced entities like the ClusterRole
-# - decide whether the deployment replicates the external CSI
-#   provisioner, in which case leadership election must be enabled;
-#   this influences the RBAC setup, see below
 
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: csi-driver-registrar
+  name: csi-cluster-driver-registrar
   # replace with non-default namespace name
   namespace: default
 
@@ -42,7 +39,7 @@ metadata:
   name: csi-driver-registrar-role
 subjects:
   - kind: ServiceAccount
-    name: csi-driver-registrar
+    name: csi-cluster-driver-registrar
     # replace with non-default namespace name
     namespace: default
 roleRef:
