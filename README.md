@@ -9,49 +9,39 @@ for the CSI driver.
 This sidecar container is only needed if you need one of the following Kubernetes
 features:
 
+<!-- TODO: Reference skip attach docs here -->
 * Skip attach: For drivers that don't support ControllerPublishVolume, this
   eliminates the need to deploy the external-attacher sidecar
+<!-- TODO: Reference pod info docs here -->
 * Pod info on mount: This passes Kubernetes metadata such as Pod name and
   namespace to the NodePublish call
 
-For more details, please see the
-[documentation](https://kubernetes-csi.github.io/docs/Setup.html#csidriver-custom-resource-alpha).
+If you are not using one of these features, this sidecar container (and the
+creation of the CSIDriver Object) is not required. However, it is still
+recommended, because the CSIDriver Object makes it easier for users to easily
+discover the CSI drivers installed on their clusters.
 
 ## Compatibility
 
 | Latest stable release                                                                                       | Branch                                                                                  | Compatible with CSI Version                                                                | Container Image                                 | Min K8s Version | Max K8s Version |
 | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------- | --------------- | --------------- |
 | [cluster-driver-registrar v1.0.1](https://github.com/kubernetes-csi/cluster-driver-registrar/releases/tag/v1.0.1) | [release-1.0](https://github.com/kubernetes-csi/cluster-driver-registrar/tree/release-1.0) | [CSI Spec v1.0.0](https://github.com/container-storage-interface/spec/releases/tag/v1.0.0) | quay.io/k8scsi/csi-cluster-driver-registrar:v1.0.1 | 1.13            | -               |
+| [driver-registrar v0.4.2](https://github.com/kubernetes-csi/driver-registrar/releases/tag/v0.4.2) | [release-0.4](https://github.com/kubernetes-csi/driver-registrar/tree/release-0.4) | [v0.3.0](https://github.com/container-storage-interface/spec/releases/tag/v0.3.0) | quay.io/k8scsi/driver-registrar:v0.4.2 | v1.10            | -               |
 
 ## Usage
 
-### Features
+### Common arguments
 
-#### Skip attach
-
-  * The cluster-driver-registrar populates the attachRequired field of
-    CSIDriverInfo by checking for the PUBLISH_UNPUBLISH_VOLUME controller
-    capability. No additional configuration is required.
-  * Drivers that don't support this capability do not need to deploy the
-    external-attacher sidecar.
-
-#### Pod info on mount
-
-  * The cluster-driver-registrar can indicate that the associated driver wants
-    kubelet to send additional information about the driver Pod as
-    VolumeAttributes on a volume mount.
-  <!-- TODO: Upload pod info details to csi-docs, reference here -->
-  * This is controlled by the `--pod-info-mount-version` argument. The
-    supported values are:
-    * `v1`
-
-### Required arguments
-
-Though not strictly required, the following parameter it typically customized:
+Though not strictly required, the following parameters are typically
+customized:
 
 * `--csi-address`: This is the path to the CSI driver UNIX domain socket inside
   the pod that the `cluster-driver-registrar` container will use to issue CSI
   operations (e.g. `/csi/csi.sock`).
+* `--pod-info-mount-version`: This controls what Pod information is passed to
+  the NodePublish call. This should only be set if the CSI driver requires Pod
+  information for mounting. Supported values are:
+  * `v1`
 
 ### Required permissions
 
