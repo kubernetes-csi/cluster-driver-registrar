@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/kubernetes-csi/driver-registrar.svg?branch=master)](https://travis-ci.org/kubernetes-csi/driver-registrar)
+
 # Cluster Driver Registrar
 
 The cluster-driver-registrar is a sidecar container that creates a cluster-level
@@ -29,7 +30,7 @@ discover the CSI drivers installed on their clusters.
 
 ## Usage
 
-### Required arguments
+### Common arguments
 
 Though not strictly required, the following parameters are typically
 customized:
@@ -38,7 +39,8 @@ customized:
   the pod that the `cluster-driver-registrar` container will use to issue CSI
   operations (e.g. `/csi/csi.sock`).
 * `--pod-info-mount-version`: This controls what Pod information is passed to
-  the NodePublish call. Supported values are:
+  the NodePublish call. This should only be set if the CSI driver requires Pod
+  information for mounting. Supported values are:
   * `v1`
 
 ### Required permissions
@@ -73,10 +75,10 @@ Learn how to engage with the Kubernetes community on the [community page](http:/
 
 You can reach the maintainers of this project at:
 
-- Slack channels
-  - [#wg-csi](https://kubernetes.slack.com/messages/wg-csi)
-  - [#sig-storage](https://kubernetes.slack.com/messages/sig-storage)
-- [Mailing list](https://groups.google.com/forum/#!forum/kubernetes-sig-storage)
+* Slack channels
+  * [#wg-csi](https://kubernetes.slack.com/messages/wg-csi)
+  * [#sig-storage](https://kubernetes.slack.com/messages/sig-storage)
+* [Mailing list](https://groups.google.com/forum/#!forum/kubernetes-sig-storage)
 
 ### Code of conduct
 
