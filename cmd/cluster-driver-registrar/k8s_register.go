@@ -22,14 +22,12 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	crdclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/util/retry"
 	k8scsi "k8s.io/csi-api/pkg/apis/csi/v1alpha1"
 	k8scsiclient "k8s.io/csi-api/pkg/client/clientset/versioned"
-	k8scsicrd "k8s.io/csi-api/pkg/crd"
 
 	"github.com/kubernetes-csi/cluster-driver-registrar/pkg/connection"
 )
@@ -53,24 +51,6 @@ func kubernetesRegister(
 	}
 	glog.V(1).Infof("AttachRequired: %v", *k8sAttachmentRequired)
 	glog.V(1).Infof("PodInfoOnMountVersion: %v", *k8sPodInfoOnMountVersion)
-
-	// Register CRD
-	glog.V(1).Info("Registering " + k8scsi.CsiDriverResourcePlural)
-	crdclient, err := crdclient.NewForConfig(config)
-	if err != nil {
-		glog.Error(err.Error())
-		os.Exit(1)
-	}
-	crdv1beta1client := crdclient.ApiextensionsV1beta1().CustomResourceDefinitions()
-	_, err = crdv1beta1client.Create(k8scsicrd.CSIDriverCRD())
-	if err == nil {
-		glog.V(1).Info("CSIDriver CRD registered")
-	} else if apierrors.IsAlreadyExists(err) {
-		glog.V(1).Info("CSIDriver CRD already had been registered")
-	} else if err != nil {
-		glog.Error(err.Error())
-		os.Exit(1)
-	}
 
 	// Set up goroutine to cleanup (aka deregister) on termination.
 	c := make(chan os.Signal, 1)
