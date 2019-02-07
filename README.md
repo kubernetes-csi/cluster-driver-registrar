@@ -23,10 +23,11 @@ discover the CSI drivers installed on their clusters.
 
 ## Compatibility
 
-| Latest stable release                                                                                       | Branch                                                                                  | Compatible with CSI Version                                                                | Container Image                                 | Min K8s Version | Max K8s Version |
-| ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------- | --------------- | --------------- |
-| [cluster-driver-registrar v1.0.1](https://github.com/kubernetes-csi/cluster-driver-registrar/releases/tag/v1.0.1) | [release-1.0](https://github.com/kubernetes-csi/cluster-driver-registrar/tree/release-1.0) | [CSI Spec v1.0.0](https://github.com/container-storage-interface/spec/releases/tag/v1.0.0) | quay.io/k8scsi/csi-cluster-driver-registrar:v1.0.1 | 1.13            | -               |
-| [driver-registrar v0.4.2](https://github.com/kubernetes-csi/driver-registrar/releases/tag/v0.4.2) | [release-0.4](https://github.com/kubernetes-csi/driver-registrar/tree/release-0.4) | [v0.3.0](https://github.com/container-storage-interface/spec/releases/tag/v0.3.0) | quay.io/k8scsi/driver-registrar:v0.4.2 | v1.10            | -               |
+This information reflects the head of this branch.
+
+| Compatible with CSI Version                                                                | Container Image                                 | Min K8s Version |
+| ------------------------------------------------------------------------------------------ | ----------------------------------------------- | --------------- |
+| [CSI Spec v1.0.0](https://github.com/container-storage-interface/spec/releases/tag/v1.0.0) | quay.io/k8scsi/csi-cluster-driver-registrar     | 1.13            |
 
 ## Usage
 
