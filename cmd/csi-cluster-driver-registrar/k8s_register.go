@@ -21,14 +21,12 @@ import (
 	"os/signal"
 	"time"
 
-	crdclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/util/retry"
 	k8scsi "k8s.io/csi-api/pkg/apis/csi/v1alpha1"
 	k8scsiclient "k8s.io/csi-api/pkg/client/clientset/versioned"
-	k8scsicrd "k8s.io/csi-api/pkg/crd"
 	"k8s.io/klog"
 )
 
@@ -43,22 +41,6 @@ func kubernetesRegister(
 		os.Exit(1)
 	}
 
-	// Register CRD
-	klog.V(1).Info("Registering " + k8scsi.CsiDriverResourcePlural)
-	crdclient, err := crdclient.NewForConfig(config)
-	if err != nil {
-		klog.Error(err.Error())
-		os.Exit(1)
-	}
-	crdv1beta1client := crdclient.ApiextensionsV1beta1().CustomResourceDefinitions()
-	_, err = crdv1beta1client.Create(k8scsicrd.CSIDriverCRD())
-	if apierrors.IsAlreadyExists(err) {
-		klog.V(1).Info("CSIDriver CRD already had been registered")
-	} else if err != nil {
-		klog.Error(err.Error())
-		os.Exit(1)
-	}
-	klog.V(1).Info("CSIDriver CRD registered")
 	// Set up goroutine to cleanup (aka deregister) on termination.
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
