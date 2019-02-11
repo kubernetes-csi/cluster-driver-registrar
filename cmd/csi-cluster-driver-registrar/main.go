@@ -53,7 +53,7 @@ var (
 			"- csi.storage.k8s.io/pod.namespace: pod.Namespace\n"+
 			"- csi.storage.k8s.io/pod.uid: string(pod.UID)",
 	)
-	connectionTimeout = flag.Duration("connection-timeout", 1*time.Minute, "Timeout for waiting for CSI driver socket.")
+	connectionTimeout = flag.Duration("connection-timeout", 0, "The --connection-timeout flag is deprecated")
 	csiAddress        = flag.String("csi-address", "/run/csi/socket", "Address of the CSI driver socket.")
 	showVersion       = flag.Bool("version", false, "Show version.")
 	version           = "unknown"
@@ -72,9 +72,13 @@ func main() {
 	}
 	klog.Infof("Version: %s", version)
 
+	if *connectionTimeout != 0 {
+		klog.Warning("--connection-timeout is deprecated and will have no effect")
+	}
+
 	// Connect to CSI.
 	klog.V(1).Infof("Attempting to open a gRPC connection with: %q", *csiAddress)
-	csiConn, err := connection.NewConnection(*csiAddress, *connectionTimeout)
+	csiConn, err := connection.NewConnection(*csiAddress)
 	if err != nil {
 		klog.Error(err.Error())
 		os.Exit(1)
