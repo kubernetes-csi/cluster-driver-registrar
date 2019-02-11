@@ -16,7 +16,7 @@ metadata:
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: cluster-driver-registrar-role
+  name: cluster-driver-registrar-runner
 rules:
   - apiGroups: ["csi.storage.k8s.io"]
     resources: ["csidrivers"]
@@ -26,7 +26,7 @@ rules:
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: csi-driver-registrar-role
+  name: csi-cluster-driver-registrar-role
 subjects:
   - kind: ServiceAccount
     name: csi-cluster-driver-registrar
@@ -34,5 +34,5 @@ subjects:
     namespace: default
 roleRef:
   kind: ClusterRole
-  name: cluster-driver-registrar-role
+  name: cluster-driver-registrar-runner
   apiGroup: rbac.authorization.k8s.io
