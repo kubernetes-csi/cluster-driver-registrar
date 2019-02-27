@@ -23,13 +23,17 @@ import (
 	"os"
 	"time"
 
+	"google.golang.org/grpc"
+
+	"github.com/container-storage-interface/spec/lib/go/csi"
+	"github.com/kubernetes-csi/csi-lib-utils/connection"
+	csirpc "github.com/kubernetes-csi/csi-lib-utils/rpc"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	k8scsi "k8s.io/csi-api/pkg/apis/csi/v1alpha1"
 	"k8s.io/klog"
-
-	"github.com/kubernetes-csi/cluster-driver-registrar/pkg/connection"
 )
 
 const (
@@ -78,9 +82,9 @@ func main() {
 
 	// Connect to CSI.
 	klog.V(1).Infof("Attempting to open a gRPC connection with: %q", *csiAddress)
-	csiConn, err := connection.NewConnection(*csiAddress)
+	csiConn, err := connection.Connect(*csiAddress)
 	if err != nil {
-		klog.Error(err.Error())
+		klog.Errorf("error connecting to CSI driver: %v", err)
 		os.Exit(1)
 	}
 
@@ -90,7 +94,7 @@ func main() {
 
 	// Get CSI driver name.
 	klog.V(4).Infof("Calling CSI driver to discover driver name.")
-	csiDriverName, err := csiConn.GetDriverName(ctx)
+	csiDriverName, err := csirpc.GetDriverName(ctx, csiConn)
 	if err != nil {
 		klog.Error(err.Error())
 		os.Exit(1)
@@ -99,9 +103,9 @@ func main() {
 
 	// Check if volume attach is required
 	klog.V(4).Infof("Checking if CSI driver implements ControllerPublishVolume().")
-	k8sAttachmentRequired, err := csiConn.IsAttachRequired(ctx)
+	k8sAttachmentRequired, err := isAttachRequired(ctx, csiConn)
 	if err != nil {
-		klog.Error(err.Error())
+		klog.Errorf("error checking if attach is required: %v", err)
 		os.Exit(1)
 	}
 
@@ -140,4 +144,13 @@ func buildConfig(kubeconfig string) (*rest.Config, error) {
 	// pods. It's intended for clients that are running inside a pod running on
 	// kubernetes.
 	return rest.InClusterConfig()
+}
+
+func isAttachRequired(ctx context.Context, conn *grpc.ClientConn) (bool, error) {
+	capabilities, err := csirpc.GetControllerCapabilities(ctx, conn)
+	if err != nil {
+		return false, err
+	}
+
+	return capabilities[csi.ControllerServiceCapability_RPC_PUBLISH_UNPUBLISH_VOLUME], nil
 }
