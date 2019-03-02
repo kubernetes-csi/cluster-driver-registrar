@@ -29,10 +29,10 @@ import (
 	"github.com/kubernetes-csi/csi-lib-utils/connection"
 	csirpc "github.com/kubernetes-csi/csi-lib-utils/rpc"
 
+	k8scsi "k8s.io/api/storage/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	k8scsi "k8s.io/csi-api/pkg/apis/csi/v1alpha1"
 	"k8s.io/klog"
 )
 
@@ -46,12 +46,11 @@ const (
 
 // Command line flags
 var (
-	kubeconfig               = flag.String("kubeconfig", "", "Absolute path to the kubeconfig file. Required only when running out of cluster.")
-	k8sPodInfoOnMountVersion = flag.String("pod-info-mount-version",
-		"",
+	kubeconfig        = flag.String("kubeconfig", "", "Absolute path to the kubeconfig file. Required only when running out of cluster.")
+	k8sPodInfoOnMount = flag.Bool("pod-info-mount", false,
 		"This indicates that the associated CSI volume driver"+
 			"requires additional pod information (like podName, podUID, etc.) during mount."+
-			"A version of value \"v1\" will cause the Kubelet send the followings pod information "+
+			"When set to true, Kubelet will send the followings pod information "+
 			"during NodePublishVolume() calls to the driver as VolumeAttributes:"+
 			"- csi.storage.k8s.io/pod.name: pod.Name\n"+
 			"- csi.storage.k8s.io/pod.namespace: pod.Namespace\n"+
@@ -115,8 +114,8 @@ func main() {
 			Name: csiDriverName,
 		},
 		Spec: k8scsi.CSIDriverSpec{
-			AttachRequired:        &k8sAttachmentRequired,
-			PodInfoOnMountVersion: k8sPodInfoOnMountVersion,
+			AttachRequired: &k8sAttachmentRequired,
+			PodInfoOnMount: k8sPodInfoOnMount,
 		},
 	}
 

@@ -21,12 +21,12 @@ import (
 	"os/signal"
 	"time"
 
+	k8scsi "k8s.io/api/storage/v1beta1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/util/retry"
-	k8scsi "k8s.io/csi-api/pkg/apis/csi/v1alpha1"
-	k8scsiclient "k8s.io/csi-api/pkg/client/clientset/versioned"
 	"k8s.io/klog"
 )
 
@@ -35,7 +35,7 @@ func kubernetesRegister(
 	csiDriver *k8scsi.CSIDriver,
 ) {
 	// Get client info to CSIDriver
-	clientset, err := k8scsiclient.NewForConfig(config)
+	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		klog.Error(err.Error())
 		os.Exit(1)
@@ -53,7 +53,7 @@ func kubernetesRegister(
 	}
 }
 
-func cleanup(c <-chan os.Signal, clientSet *k8scsiclient.Clientset, csiDriver *k8scsi.CSIDriver) {
+func cleanup(c <-chan os.Signal, clientSet *kubernetes.Clientset, csiDriver *k8scsi.CSIDriver) {
 	<-c
 	verifyAndDeleteCSIDriverInfo(clientSet, csiDriver)
 	os.Exit(1)
@@ -61,11 +61,11 @@ func cleanup(c <-chan os.Signal, clientSet *k8scsiclient.Clientset, csiDriver *k
 
 // Registers CSI driver by creating a CSIDriver object
 func verifyAndAddCSIDriverInfo(
-	csiClientset *k8scsiclient.Clientset,
+	csiClientset *kubernetes.Clientset,
 	csiDriver *k8scsi.CSIDriver,
 ) error {
 	retryErr := retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		csidrivers := csiClientset.CsiV1alpha1().CSIDrivers()
+		csidrivers := csiClientset.StorageV1beta1().CSIDrivers()
 
 		_, err := csidrivers.Create(csiDriver)
 		if err == nil {
@@ -83,11 +83,11 @@ func verifyAndAddCSIDriverInfo(
 
 // Deregister CSI Driver by deleting CSIDriver object
 func verifyAndDeleteCSIDriverInfo(
-	csiClientset *k8scsiclient.Clientset,
+	csiClientset *kubernetes.Clientset,
 	csiDriver *k8scsi.CSIDriver,
 ) error {
 	retryErr := retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		csidrivers := csiClientset.CsiV1alpha1().CSIDrivers()
+		csidrivers := csiClientset.StorageV1beta1().CSIDrivers()
 		err := csidrivers.Delete(csiDriver.Name, &metav1.DeleteOptions{})
 		if err == nil {
 			klog.V(1).Infof("CSIDriver object deleted for driver %s", csiDriver.Name)
