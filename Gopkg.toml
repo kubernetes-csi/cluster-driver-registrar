@@ -39,6 +39,14 @@
   name = "k8s.io/klog"
   revision = "8139d8cb77af419532b33dfa7dd09fbc5f1d344f"
 
+[[override]]
+  name = "k8s.io/client-go"
+  revision = "c4c6ef336ec35c5a7ed031e499fbacb262d5b670"
+
+[[override]]
+  name = "k8s.io/api"
+  revision = "58073247e1e0ac17341c173df242a45b63b88e36"
+
 [prune]
    non-go = true
    go-tests = true
