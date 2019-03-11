@@ -27,7 +27,7 @@ This information reflects the head of this branch.
 
 | Compatible with CSI Version                                                                | Container Image                                 | Min K8s Version |
 | ------------------------------------------------------------------------------------------ | ----------------------------------------------- | --------------- |
-| [CSI Spec v1.0.0](https://github.com/container-storage-interface/spec/releases/tag/v1.0.0) | quay.io/k8scsi/csi-cluster-driver-registrar     | 1.13            |
+| [CSI Spec v1.0.0](https://github.com/container-storage-interface/spec/releases/tag/v1.0.0) | quay.io/k8scsi/csi-cluster-driver-registrar     | 1.14            |
 
 ## Usage
 
@@ -39,10 +39,9 @@ customized:
 * `--csi-address`: This is the path to the CSI driver UNIX domain socket inside
   the pod that the `cluster-driver-registrar` container will use to issue CSI
   operations (e.g. `/csi/csi.sock`).
-* `--pod-info-mount-version`: This controls what Pod information is passed to
+* `--pod-info-mount`: This allows Pod information to be passed to
   the NodePublish call. This should only be set if the CSI driver requires Pod
-  information for mounting. Supported values are:
-  * `v1`
+  information for mounting.
 
 ### Required permissions
 
@@ -61,7 +60,7 @@ Here is an example sidecar spec in the driver's controller StatefulSet.
           image: quay.io/k8scsi/csi-cluster-driver-registrar:v1.0.2
           args:
             - "--csi-address=/csi/csi.sock"
-            - "--pod-info-mount-version=v1"
+            - "--pod-info-mount=true"
           volumeMounts:
             - name: plugin-dir
               mountPath: /csi
