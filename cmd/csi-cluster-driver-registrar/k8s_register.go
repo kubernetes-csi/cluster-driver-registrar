@@ -19,6 +19,7 @@ package main
 import (
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	k8scsi "k8s.io/api/storage/v1beta1"
@@ -42,8 +43,9 @@ func kubernetesRegister(
 	}
 
 	// Set up goroutine to cleanup (aka deregister) on termination.
+	// Kubernetes uses SIGTERM, not SIGINT.
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
+	signal.Notify(c, syscall.SIGTERM)
 	go cleanup(c, clientset, csiDriver)
 
 	// Run forever
