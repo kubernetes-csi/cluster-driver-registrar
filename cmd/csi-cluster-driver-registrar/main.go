@@ -48,10 +48,10 @@ const (
 var (
 	kubeconfig        = flag.String("kubeconfig", "", "Absolute path to the kubeconfig file. Required only when running out of cluster.")
 	k8sPodInfoOnMount = flag.Bool("pod-info-mount", false,
-		"This indicates that the associated CSI volume driver"+
-			"requires additional pod information (like podName, podUID, etc.) during mount."+
-			"When set to true, Kubelet will send the followings pod information "+
-			"during NodePublishVolume() calls to the driver as VolumeAttributes:"+
+		"This indicates that the associated CSI volume driver\n"+
+			"requires additional pod information (like podName, podUID, etc.) during mount.\n"+
+			"When set to true, Kubelet will send the followings pod information\n"+
+			"during NodePublishVolume() calls to the driver as VolumeAttributes:\n"+
 			"- csi.storage.k8s.io/pod.name: pod.Name\n"+
 			"- csi.storage.k8s.io/pod.namespace: pod.Namespace\n"+
 			"- csi.storage.k8s.io/pod.uid: string(pod.UID)",
