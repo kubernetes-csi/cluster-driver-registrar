@@ -23,7 +23,8 @@
   name = "github.com/container-storage-interface/spec"
   version = "1.0.0"
 
-# Remove k8s.io constraints once kubernetes-1.14.0 is cut
+# Update k8s.io constraints once kubernetes-1.14.0 is cut such that it
+# selects 1.14.0 (k8s.io/kubernetes) resp. kubernetes-1.14.0 (everything else).
 [[constraint]]
   name = "k8s.io/api"
   branch = "master"
@@ -32,10 +33,69 @@
   name = "k8s.io/client-go"
   branch = "master"
 
+# For E2E framework.
+[[constraint]]
+  name = "k8s.io/kubernetes"
+  branch = "master"
+
+# Dependencies of E2E framework, versions must match k8s.io/kubernetes.
+[[override]]
+  name = "k8s.io/apimachinery"
+  branch = "master"
+[[override]]
+  name = "k8s.io/api"
+  branch = "master"
+[[override]]
+  name = "k8s.io/apiserver"
+  branch = "master"
+[[override]]
+  name = "k8s.io/apiextensions-apiserver"
+  branch = "master"
+[[override]]
+  name = "k8s.io/cli-runtime"
+  branch = "master"
+[[override]]
+  name = "k8s.io/client-go"
+  branch = "master"
+[[override]]
+  name = "k8s.io/cloud-provider"
+  branch = "master"
+[[override]]
+  name = "k8s.io/cluster-bootstrap"
+  branch = "master"
+[[override]]
+  name = "k8s.io/csi-api"
+  branch = "master"
+[[override]]
+  name = "k8s.io/kube-aggregator"
+  branch = "master"
+
+# Doesn't do proper releases.
+[[override]]
+  name = "k8s.io/kube-openapi"
+  branch = "master"
+
+# Also no proper releases.
+[[override]]
+  name = "k8s.io/utils"
+  branch = "master"
+
+# Remove once some version with AccumulatedCopySizeLimit is published.
+# Kubernetes depends on >v4.1.0-19-g5858425f75500d
+[[override]]
+  name = "github.com/evanphx/json-patch"
+  branch = "master"
+
 # Remove once 0.4.0 is cut
 [[constraint]]
   name = "github.com/kubernetes-csi/csi-lib-utils"
   version = ">=0.4.0-rc1"
+
+# https://github.com/golang/dep/issues/1799
+[[override]]
+  name = "gopkg.in/fsnotify.v1"
+  source = "https://github.com/fsnotify/fsnotify.git"
+
 
 [prune]
    non-go = true
