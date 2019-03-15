@@ -42,23 +42,23 @@ func kubernetesRegister(
 		os.Exit(1)
 	}
 
-	// Set up goroutine to cleanup (aka deregister) on termination.
-	// Kubernetes uses SIGTERM, not SIGINT.
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGTERM)
-	go cleanup(c, clientset, csiDriver)
-
-	// Run forever
+	// Run until killed and in the meantime, regularly ensure that the CSIDriverInfo is set.
+	c := make(chan os.Signal, 3)
+	t := time.Tick(sleepDuration)
+	signal.Notify(c,
+		syscall.SIGQUIT,
+		syscall.SIGTERM,
+		syscall.SIGINT)
 	for {
 		verifyAndAddCSIDriverInfo(clientset, csiDriver)
-		time.Sleep(sleepDuration)
+		select {
+		case s := <-c:
+			klog.V(1).Infof("signal %q caught, removing CSIDriver object", s)
+			verifyAndDeleteCSIDriverInfo(clientset, csiDriver)
+			return
+		case <-t:
+		}
 	}
-}
-
-func cleanup(c <-chan os.Signal, clientSet *kubernetes.Clientset, csiDriver *k8scsi.CSIDriver) {
-	<-c
-	verifyAndDeleteCSIDriverInfo(clientSet, csiDriver)
-	os.Exit(1)
 }
 
 // Registers CSI driver by creating a CSIDriver object
@@ -74,7 +74,7 @@ func verifyAndAddCSIDriverInfo(
 			klog.V(1).Infof("CSIDriver object created for driver %s", csiDriver.Name)
 			return nil
 		} else if apierrors.IsAlreadyExists(err) {
-			klog.V(1).Info("CSIDriver CRD already had been registered")
+			klog.V(1).Info("CSIDriver object already had been registered")
 			return nil
 		}
 		klog.Errorf("Failed to create CSIDriver object: %v", err)
