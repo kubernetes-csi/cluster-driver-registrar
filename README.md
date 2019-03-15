@@ -17,9 +17,30 @@ features:
   namespace to the NodePublish call
 
 If you are not using one of these features, this sidecar container (and the
-creation of the CSIDriver Object) is not required. However, it is still
+creation of the CSIDriver object) is not required. However, it is still
 recommended, because the CSIDriver Object makes it easier for users to easily
-discover the CSI drivers installed on their clusters.
+discover the CSI drivers installed on their clusters:
+
+``` bash
+$ kubectl describe csidrivers.storage.k8s.io
+Name:         io.kubernetes.storage.mock
+Namespace:    
+Labels:       <none>
+Annotations:  <none>
+API Version:  storage.k8s.io/v1beta1
+Kind:         CSIDriver
+Metadata:
+  Creation Timestamp:  2019-03-15T08:48:28Z
+  Resource Version:    524
+  Self Link:           /apis/storage.k8s.io/v1beta1/csidrivers/io.kubernetes.storage.mock
+  UID:                 1a4f5f40-46ff-11e9-bfc7-fcaa1497a416
+Spec:
+  Attach Required:    true
+  Pod Info On Mount:  false
+Events:               <none>
+```
+
+
 
 ## Compatibility
 
@@ -52,7 +73,6 @@ objects. A sample RBAC configuration can be found at
 ### Example
 
 Here is an example sidecar spec in the driver's controller StatefulSet.
-`<drivername.example.com>` should be replaced by the actual driver's name.
 
 ```bash
       containers:
@@ -68,6 +88,16 @@ Here is an example sidecar spec in the driver's controller StatefulSet.
         - name: plugin-dir
           emptyDir: {}
 ```
+
+### Deinstalling a driver
+
+The cluster-driver-registrar will remove the CSIDriver object when it
+terminates. For this to work, the RBAC rules that grant the sidecar
+the necessary permissions must still be installed. A reliable way to
+achieve this when using a StatefulSet is:
+- scale down a StatefulSet to zero replicas (because of
+  https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#limitations)
+- remove the StatefulSet and RBAC rules
 
 ## Community, discussion, contribution, and support
 
