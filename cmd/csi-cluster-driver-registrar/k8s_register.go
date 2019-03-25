@@ -74,7 +74,7 @@ func verifyAndAddCSIDriverInfo(
 			klog.V(1).Infof("CSIDriver object created for driver %s", csiDriver.Name)
 			return nil
 		} else if apierrors.IsAlreadyExists(err) {
-			klog.V(1).Info("CSIDriver CRD already had been registered")
+			klog.V(1).Info("CSIDriver object already had been registered")
 			return nil
 		}
 		klog.Errorf("Failed to create CSIDriver object: %v", err)
