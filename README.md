@@ -1,5 +1,15 @@
 [![Build Status](https://travis-ci.org/kubernetes-csi/driver-registrar.svg?branch=master)](https://travis-ci.org/kubernetes-csi/driver-registrar)
 
+# !NOTE!
+:warning: :warning: Under Construction :warning: :warning:
+
+Due to Issue
+[#44](https://github.com/kubernetes-csi/cluster-driver-registrar/issues/44) this
+side car container is being redesigned and has not been released for Kubernetes
+1.14. Please read
+[docs/cluster-driver-registrar](https://kubernetes-csi.github.io/docs/cluster-driver-registrar.html)
+for more information.
+
 # Cluster Driver Registrar
 
 The cluster-driver-registrar is a sidecar container that creates a cluster-level
