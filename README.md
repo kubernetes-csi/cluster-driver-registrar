@@ -1,13 +1,13 @@
 [![Build Status](https://travis-ci.org/kubernetes-csi/driver-registrar.svg?branch=master)](https://travis-ci.org/kubernetes-csi/driver-registrar)
 
 # !NOTE!
-:warning: :warning: Under Construction :warning: :warning:
+:warning: :warning: Cluster Driver Registrar is deprecated :warning: :warning:
 
-Due to Issue
-[#44](https://github.com/kubernetes-csi/cluster-driver-registrar/issues/44) this
-side car container is being redesigned and has not been released for Kubernetes
-1.14. Please read
+`CSIDriver` object instance should be created by CSI driver installer (or manually).
+See
 [docs/cluster-driver-registrar](https://kubernetes-csi.github.io/docs/cluster-driver-registrar.html)
+and
+[docs/csi-driver-object](https://kubernetes-csi.github.io/docs/csi-driver-object.html)
 for more information.
 
 # Cluster Driver Registrar
